@@ -65,9 +65,9 @@ DSD_RandomRBFSubspaceGeneratorEvents <- function(
                                                               in such a way that subspaces 
                                                               possibly have more dimensions 
                                                               than the original data space")
-  jref <- rJava::.jcall("DataStreamBuilder",
-                        returnSig="Lmoa/streams/clustering/RandomRBFSubspaceGeneratorEvents;",
-                        method="buildRandomRBFSubspaceGeneratorEvents",
+  jref <- rJava::.jcall("moa/r_interface/RCompatibleDataStream",
+                        returnSig="Lmoa/r_interface/RCompatibleDataStream;",
+                        method="random",
                         as.integer(modelRandomSeed),
                         as.integer(instanceRandomSeed),
                         as.integer(numCluster),

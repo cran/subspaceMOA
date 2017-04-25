@@ -32,41 +32,12 @@ dataframe_row_to_html <- function(row) {
   value_strings <- sapply(names(row),function(name){return(paste0(name,": ",row[[name]],"<br>"))})
   return(paste0(value_strings,collapse=""))
 }
-#Problem: the ggplot hover output only gives us the x and y value of the data 
-#point that we are hovering over and does not tell us whether we are hovering 
-#over an actual data point or just over some empty space in the plot. We would 
-#like to have the full dataframe row of the closest point to the cursor if there
-#is a point within some area around the cursor. Solution: Take out the correct x
-#and y column from the plot. Calculate the distances w.r.t. that point. Find out
-#the smallest value, then return the corresponding row if the value is smaller
-#than area_around_cursor.
-row_from_two_values <- function(dataframe,hover_list,area_around_cursor) {
-  if(is.null(hover_list) | is.null(dataframe) | is.null(hover_list$mapping)) {
-    return(NULL)
-  }
-  dims <- c(hover_list$mapping[[1]],hover_list$mapping[[2]])
-  dim_vals <- c(hover_list$x,hover_list$y)
-  dataframe_columns <- dataframe[dims]
-  #Now we need to normalize the x and y axis values. The reasoning for this is
-  #that if we compute distances without normalizing and the space of possible values
-  #for the x and y axis is very different (e.g. x is between 0 and 1, y is between 1 and 10000),
-  #the axes are not taken into account equally, which they really should.
-  #To do so, we first subtract the smallest values of the data spaces for x and y
-  dim_vals <- c(dim_vals[1]-hover_list$domain$left,dim_vals[2]-hover_list$domain$bottom)
-  dataframe_columns[dims[1]] <- dataframe_columns[dims[1]] - hover_list$domain$left
-  dataframe_columns[dims[2]] <- dataframe_columns[dims[2]] - hover_list$domain$bottom
-  #Then we divide by the width of the x and the y dataspace
-  x_width <- hover_list$domain$right - hover_list$domain$left
-  y_width <- hover_list$domain$top - hover_list$domain$bottom
-  dim_vals <- c(dim_vals[1]/x_width,dim_vals[2]/y_width)
-  dataframe_columns[dims[1]] <- dataframe_columns[dims[1]] / x_width
-  dataframe_columns[dims[2]] <- dataframe_columns[dims[2]] / y_width
-  
-  best_index <- which.min(fields::rdist(dataframe_columns,matrix(dim_vals,nrow=1)))
-  best_value <- fields::rdist(dataframe_columns[best_index,],matrix(dim_vals,nrow=1))
-  if(best_value > area_around_cursor) {
-    return(NULL)
-  }else {
-    return(dataframe[best_index,])
+incorporate_new_evalres <- function(old_evaluation_table,new_evalres) {
+  if(is.null(old_evaluation_table)) {
+    res <- data.frame(as.list(c(1,new_evalres$values)))
+    names(res) <- make.names(c("time",all_eval_measures()))
+    return(res)
+  } else {
+    return(rbind(old_evaluation_table,c(nrow(old_evaluation_table) + 1,new_evalres$values)))
   }
 }

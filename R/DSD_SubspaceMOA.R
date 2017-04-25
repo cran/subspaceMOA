@@ -4,7 +4,7 @@ get_points.DSD_SubspaceMOA <- function(x, n=1,
                                        cluster=FALSE, 
                                        class=FALSE, ...) {
   if(rJava::is.jnull(x$javaObj)) stop("The java object in the DSD is null. This is probably due to a restart that has reset the JVM. Try recreating the DSD_RandomRBFSubspaceGeneratorEvents")
-  res <- rJava::.jcall("DataStreamAccessor",returnSig="[[D",method="getPoints",x$javaObj,as.integer(n),simplify=T)
+  res <- rJava::.jcall(x$javaObj,returnSig="[[D",method="getPoints",as.integer(n),simplify=T)
   res <- data.frame(res)
   #Ground truth is normally put into the last column
   ground_truth_classes <- res[,ncol(res)]

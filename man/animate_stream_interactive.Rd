@@ -12,22 +12,31 @@ animate_stream_interactive(dsc, dsd, step = 1500, delay = 10000,
 
 \item{dsd}{a DSD object representing a data stream.}
 
-\item{step}{the step size used in \link{animate_stream_interactive}. This 
+\item{step}{the step size used in \link{animate_stream_interactive}. This
 regulates how many points will be taken out of the stream, clustered and the
 plotted along with their clusters every time a step is performed.}
 
 \item{delay}{time between two clustering steps}
 
-\item{launch.browser}{will be passed on to \link[shiny]{runApp}, so that the 
-visualisation can be shown in e.g. RStudio's Viewer pane, if this is 
+\item{launch.browser}{will be passed on to \link[shiny]{runApp}, so that the
+visualisation can be shown in e.g. RStudio's Viewer pane, if this is
 desired.}
 }
 \description{
-A function to plot data streams and clusterings. The visualisation is based on 
+A function to plot data streams and clusterings. The visualisation is based on
 \link[shiny]{shiny} and \link[ggplot2]{ggplot}. Data is plotted as a
 scatterplot matrix and individual scatterplots can be selected for a more
 detailed view that includes tooltips. Please note that this function was
 developed for the Streaming algorithms in the subspaceMOA package and may or may
 not work for streams and clustering algorithms.
 }
+\examples{
+clusterer <- DSC_ThreeStage(DSC_p3c(),DSC_subspaceCluStream())
+stream <- DSD_RandomRBFSubspaceGeneratorEvents()
 
+
+\dontrun{
+animate_stream_interactive(clusterer,stream)
+}
+
+}

@@ -70,4 +70,3 @@ value.}
 A Random data stream that generated data points that are clustered in several
 subspaces.
 }
-

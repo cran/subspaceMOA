@@ -52,4 +52,3 @@ dsc <- DSC_PreDeConStream()
 dsd <- DSD_RandomRBFSubspaceGeneratorEvents()
 update(dsc,dsd,1000)
 }
-

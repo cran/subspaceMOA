@@ -12,4 +12,3 @@ DSD_SubspaceARFFStream(file)
 \description{
 A DSD object to stream Data Points from a .arff file.
 }
-

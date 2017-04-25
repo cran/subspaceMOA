@@ -21,4 +21,3 @@ that can be used with \link{DSC_ThreeStage}.
 For more details on this
 algorithm, consult \link[subspace]{ProClus}.
 }
-

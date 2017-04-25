@@ -13,7 +13,7 @@
 #'update(dsc,dsd,1000)
 #'@export
 DSC_clique <- function(xi=10,tau=0.2) {
-  jref <- rJava::.jcall("MacroClustererBuilder",
+  jref <- rJava::.jcall("moa/r_interface/MacroClustererBuilder",
                        returnSig="Lmoa/clusterers/macrosubspace/MacroSubspaceClusterer;",
                        method="buildClique",
                        as.integer(xi),tau)
@@ -35,7 +35,7 @@ DSC_clique <- function(xi=10,tau=0.2) {
 #'update(dsc,dsd,1000)
 #'@export
 DSC_proclus <- function(numOfClusters=5,avgDimensions=3){
-  jref <- rJava::.jcall("MacroClustererBuilder",
+  jref <- rJava::.jcall("moa/r_interface/MacroClustererBuilder",
                        returnSig="Lmoa/clusterers/macrosubspace/MacroSubspaceClusterer;",
                        method="buildProclus",
                        as.integer(numOfClusters),as.integer(avgDimensions))
@@ -60,7 +60,7 @@ DSC_proclus <- function(numOfClusters=5,avgDimensions=3){
 #'update(dsc,dsd,1000)
 #'@export
 DSC_p3c <- function(poissonThreshold=10,chiSquareAlpha=0.001) {
-  jref <- rJava::.jcall("MacroClustererBuilder",
+  jref <- rJava::.jcall("moa/r_interface/MacroClustererBuilder",
                        returnSig="Lmoa/clusterers/macrosubspace/MacroSubspaceClusterer;",
                        method="buildP3c",
                        as.integer(poissonThreshold),chiSquareAlpha)
@@ -82,7 +82,7 @@ DSC_p3c <- function(poissonThreshold=10,chiSquareAlpha=0.001) {
 #'update(dsc,dsd,1000)
 #'@export
 DSC_subclu <- function(epsilon=0.05,minSupport=50,minOutputDim=3){
-  jref <- rJava::.jcall("MacroClustererBuilder",
+  jref <- rJava::.jcall("moa/r_interface/MacroClustererBuilder",
                        returnSig="Lmoa/clusterers/macrosubspace/MacroSubspaceClusterer;",
                        method="buildSubclu",
                        epsilon,as.integer(minSupport),as.integer(minOutputDim))

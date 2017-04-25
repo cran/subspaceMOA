@@ -30,107 +30,13 @@
 #'@import methods
 DSC_ThreeStage <- function(macro,micro) {
   if(!("DSC_SubspaceMOA_macro" %in% class(macro))) stop("Macroclusterer must have class DSC_SubspaceMOA_macro")
-  #if(!("DSC_SubspaceMOA_micro" %in% class(micro))) stop("Microclusterer must have class DSC_SubspaceMOA_micro") 
-  #The attribute state$needs_reclustering is set to true if no macroclustering
-  #has been performed since the last new data point was pushed into the
-  #clusterer
-  res <- structure(list(macro_dsc=macro,micro_dsc=micro,state=dsc_threestage_state$new()),
-                   class=c("DSC_ThreeStage","DSC_SubspaceMOA","DSC"))
+  if(!("DSC_SubspaceMOA_micro" %in% class(micro))) stop("Microclusterer must have class DSC_SubspaceMOA_micro")
+  javaObj <- rJava::.jcall("moa/r_interface/ThreeStageClusterer",
+                           "Lmoa/r_interface/RCompatibleDataStreamClusterer;",
+                           "threeStage",
+                           micro$javaObj,
+                           macro$javaObj)
+  if(rJava::is.jnull(javaObj)) stop("Creation of ThreeStageClusterer has failed")
+  res <- structure(list(javaObj = javaObj),class = c("DSC_ThreeStage","DSC_SubspaceMOA","DSC"))
   return(res)
-}
-#An S4 object that contains information as to whether macroclustering has been 
-#performed lately. This is so that get_weights and get_centers do not need to 
-#run clustering every time they are called. Not only does this save half the 
-#time when cluster centers and weights are requested, but it also allows us to 
-#have macro clustering algorithms that do not always return the same result for 
-#a particular set of input data, which is the case for some subspaceMOA
-#macroclusterers. This needs to be in an S4-Object, because S3 objects
-#Are always called by value and we need to change this state object
-#from within a function.
-dsc_threestage_state <- setRefClass("dsc_threestage_state",
-                                    fields=c("macroclustering","needs_macroclustering"),
-                                    methods=list(initialize=function(){macroclustering<<-NULL
-                                                                       needs_macroclustering<<-T}))
-perform_macroclustering <- function(dsc) {
-  #obtain the object representing the micro clustering
-  micro_clustering <- rJava::.jcall(dsc$micro_dsc$javaObj,
-                                    returnSig="Lmoa/cluster/Clustering;",
-                                    method="getMicroClusteringResult")
-  macro_clustering <- rJava::.jcall(dsc$macro_dsc$javaObj,
-                                    returnSig="Lmoa/cluster/SubspaceClustering;",
-                                    method="getClusteringResult",micro_clustering)
-  if(rJava::is.jnull(macro_clustering)) {
-    dsc$state$macroclustering <- NULL
-  } 
-  else {
-    dsc$state$macroclustering <- macro_clustering
-  }
-  dsc$state$needs_macroclustering <- F
-  return(dsc)
-}
-#'@export
-get_centers.DSC_ThreeStage <- function(x,type=c("auto","micro","macro"),...) {
-  if("auto" %in% type) type <- "macro"
-  if("macro" %in% type) {
-    if(x$state$needs_macroclustering) perform_macroclustering(x)
-    if(is.null(x$state$macroclustering)) return(NULL)
-    macro_clustering <- x$state$macroclustering
-    #Turn the macro clustering into a matrix containing only the centers of the clusters
-    res <- rJava::.jcall("ClusteringAccessor",
-                         returnSig="[[D",method="getClusteringResult",
-                         macro_clustering,simplify=T)
-    if(length(as.vector(res))==1 & as.vector(res)[1]==0)return(NULL)
-    return(data.frame(res))
-  } else if ("micro" %in% type) {
-    cast_microclusterer <- rJava::.jcast(x$micro_dsc$javaObj,"moa/clusterers/Clusterer")
-    micro_clustering <- rJava::.jcall(cast_microclusterer,
-                                      returnSig="Lmoa/cluster/Clustering;",
-                                      method="getMicroClusteringResult")
-    res <- rJava::.jcall("ClusteringAccessor",
-                         returnSig="[[D",method="getMicroClusteringResult",
-                         micro_clustering,simplify=T)
-    if(length(as.vector(res))==1 & as.vector(res)[1]==0)return(NULL)
-    return(data.frame(res))
-  } else {
-    stop("Not implemented yet")
-  }
-}
-
-#'@export
-get_weights.DSC_ThreeStage <- function(x, type=c("auto", "micro", "macro"), scale=NULL,...) {
-  if("auto" %in% type) type <- "macro"
-  if("macro" %in% type) {
-    if(x$state$needs_macroclustering)perform_macroclustering(x)
-    if(is.null(x$state$macroclustering))return(NULL)
-    macro_clustering <- x$state$macroclustering
-    res <- rJava::.jcall("ClusteringAccessor",
-                         returnSig="[D",method="getClusteringWeights",
-                         macro_clustering,simplify=T)
-    if(length(as.vector(res))==1 & as.vector(res)[1]==0)return(NULL)
-    return(scale_weights(res,scale))
-  } else if ("micro" %in% type) {
-    cast_microclusterer <- rJava::.jcast(x$micro_dsc$javaObj,"moa/clusterers/Clusterer")
-    micro_clustering <- rJava::.jcall(cast_microclusterer,
-                                      returnSig="Lmoa/cluster/Clustering;",
-                                      method="getMicroClusteringResult")
-    res <- rJava::.jcall("ClusteringAccessor",
-                         returnSig="[D",method="getClusteringWeights",
-                         micro_clustering,simplify=T)
-    if(length(as.vector(res))==1 & as.vector(res)[1]==0)return(NULL)
-    return(scale_weights(res,scale))
-  } else {
-    stop("Not implemented yet")
-  }
-}
-
-#'@export
-update.DSC_ThreeStage <- function(object,dsd,n = 1, verbose = FALSE, ...) {
-  object$state$needs_macroclustering <- T
-  points <- get_points(dsd,n)
-  dsc <- object
-  apply(points,1,function(row){
-    instance <- rJava::.jnew("moa/core/SubspaceInstance",1.0,row)
-    wekaInstance <- rJava::.jcast(instance,new.class="weka/core/Instance")
-    rJava::.jcall(dsc$micro_dsc$javaObj,returnSig="V",method="trainOnInstanceImpl",wekaInstance)
-  })
 }

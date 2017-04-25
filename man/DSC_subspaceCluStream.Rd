@@ -20,4 +20,3 @@ DSC_subspaceCluStream(timeWindow = 1000, maxNumKernels = 200,
 A version of the \link[streamMOA]{DSC_CluStream} algorithm that is optimized for use with \link{DSC_ThreeStage}. 
 Do not attempt to use this as a standalone stream clustering algorithm.
 }
-

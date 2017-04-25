@@ -13,11 +13,10 @@ plot_stream_interactive(dsc, points,
 \item{points}{a \link{data.frame} of points that will be plotted along with
 the clustering.}
 
-\item{launch.browser}{will be passed on to \link[shiny]{runApp}, so that the 
-visualisation can be shown in e.g. RStudio's Viewer pane, if this is 
+\item{launch.browser}{will be passed on to \link[shiny]{runApp}, so that the
+visualisation can be shown in e.g. RStudio's Viewer pane, if this is
 desired.}
 }
 \description{
 A non-animated version of \link{animate_stream_interactive}.
 }
-

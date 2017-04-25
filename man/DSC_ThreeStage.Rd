@@ -37,4 +37,3 @@ Possible choices for the micro clusterer are \link{DSC_subspaceDenStream} and
 \link{DSC_p3c}, \link{DSC_proclus} and \link{DSC_subclu}. Other clusterers are
 currently not supported.
 }
-

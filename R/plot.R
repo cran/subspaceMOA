@@ -1,6 +1,6 @@
 #'Animate Stream Clustering.
 #'
-#'A function to plot data streams and clusterings. The visualisation is based on 
+#'A function to plot data streams and clusterings. The visualisation is based on
 #'\link[shiny]{shiny} and \link[ggplot2]{ggplot}. Data is plotted as a
 #'scatterplot matrix and individual scatterplots can be selected for a more
 #'detailed view that includes tooltips. Please note that this function was
@@ -9,28 +9,56 @@
 #'
 #'@param dsc a DSC object representing the clustering of a data stream.
 #'@param dsd a DSD object representing a data stream.
-#'@param step the step size used in \link{animate_stream_interactive}. This 
+#'@param step the step size used in \link{animate_stream_interactive}. This
 #'  regulates how many points will be taken out of the stream, clustered and the
 #'  plotted along with their clusters every time a step is performed.
 #'@param delay time between two clustering steps
-#'@param launch.browser will be passed on to \link[shiny]{runApp}, so that the 
-#'  visualisation can be shown in e.g. RStudio's Viewer pane, if this is 
+#'@param launch.browser will be passed on to \link[shiny]{runApp}, so that the
+#'  visualisation can be shown in e.g. RStudio's Viewer pane, if this is
 #'  desired.
+#'  
+#'@examples
+#'clusterer <- DSC_ThreeStage(DSC_p3c(),DSC_subspaceCluStream())
+#'stream <- DSD_RandomRBFSubspaceGeneratorEvents()
+#'
+#'
+#'\dontrun{
+#'animate_stream_interactive(clusterer,stream)
+#'}
+#'
 #'@export
 #'@import ggplot2
 #'@import shiny
 #'@import magrittr
 #'@import stream
 #'@import streamMOA
- animate_stream_interactive <- function(dsc,dsd,step=1500,delay=10000,launch.browser=getOption("shiny.launch.browser",interactive())) {
-   #Create a shiny UI in which to display the streaming data
-   ui <- makeUI(show_animate_buttons=T)
-   server <- makeServer(dsc,dsd,step,delay=delay)
-   
-   onStart <- function(){}
-   app <- shinyApp(ui=ui,server=server,onStart=onStart)
-   runApp(app,launch.browser=launch.browser)
- }
+animate_stream_interactive <-
+  function(dsc,
+           dsd,
+           step = 1500,
+           delay = 10000,
+           launch.browser = getOption("shiny.launch.browser", interactive())) {
+    #Create a shiny UI in which to display the streaming data
+    ui <- makeUI(show_animate_buttons = T)
+    server <- makeServer(dsc, dsd, step, delay = delay)
+    
+    measures <-
+      c(
+        "clustering error",
+        "cmm subspace",
+        "entropy subspace",
+        "f1 subspace",
+        "purity",
+        "rand statistic"
+      )
+    
+    onStart <- function() {
+    }
+    app <- shinyApp(ui = ui,
+                    server = server,
+                    onStart = onStart)
+    runApp(app, launch.browser = launch.browser)
+  }
 #'Show Stream Clustering.
 #'
 #'A non-animated version of \link{animate_stream_interactive}.
@@ -38,63 +66,102 @@
 #'@param dsc a DSC object representing the clustering of a data stream.
 #'@param points a \link{data.frame} of points that will be plotted along with
 #'  the clustering.
-#'@param launch.browser will be passed on to \link[shiny]{runApp}, so that the 
-#'  visualisation can be shown in e.g. RStudio's Viewer pane, if this is 
+#'@param launch.browser will be passed on to \link[shiny]{runApp}, so that the
+#'  visualisation can be shown in e.g. RStudio's Viewer pane, if this is
 #'  desired.
 #'@export
-plot_stream_interactive <- function(dsc,points,launch.browser=getOption("shiny.launch.browser",interactive())) {
-  ui <- makeUI(show_animate_buttons=F)
-  server <- makeServer(dsc,points)
-  onStart <- function(){}
-  app <- shinyApp(ui=ui,server=server,onStart=onStart)
-  runApp(app,launch.browser=launch.browser)
-}
+plot_stream_interactive <-
+  function(dsc,
+           points,
+           launch.browser = getOption("shiny.launch.browser", interactive())) {
+    ui <- makeUI(show_animate_buttons = F)
+    server <- makeServer(dsc, points)
+    onStart <- function() {
+    }
+    app <- shinyApp(ui = ui,
+                    server = server,
+                    onStart = onStart)
+    runApp(app, launch.browser = launch.browser)
+  }
 
 makeUI <- function(show_animate_buttons) {
-  ui <- fluidPage(
+  ui <- fluidPage(fluidRow(
     #This dummy input exists because a conditional panel can only depend on
-    #values in the input or the output object, so we encode part of the 
+    #values in the input or the output object, so we encode part of the
     #application's state in an invisible selectInput. This is, of course, a very
     #horrible way of doing it, but it works.
-    conditionalPanel("false",
-                     selectInput("dummyInput",
-                                 label="You should not be seeing this",
-                                 choices=c("matrix","detail"))),
-    conditionalPanel("input.dummyInput == 'matrix'",
-                     plotOutput("plot_matrix",click="plot_matrix_click",
-                                width="95%",
-                                height="600px"),
-                     conditionalPanel(r_logical_to_js_boolean_string(show_animate_buttons),
-                      fluidRow(
-                        column(4,actionButton(inputId="stop_button",label="Stop",
-                                                class="btn-danger btn-large btn-block")),
-                        column(4,actionButton(inputId="step_button",label="Step",
-                                                class="btn-primary btn-large btn-block")),
-                        column(4,actionButton(inputId="run_button",label="Run",
-                                                class="btn-success btn-large btn-block"))
-                      ))),
-    conditionalPanel("input.dummyInput=='detail'",
-                     fluidRow(plotOutput("detail_plot",
-                                         hover="detail_plot_hover",
-                                         height="600px")),
-                     #The button to go back to the plot matrix view
-                     fluidRow(
-                       actionButton(inputId="back_button",
-                                    label="",icon=icon(name="th"),
-                                    class="btn-primary btn-large btn-block")
-                     ),
-                     #The text field in which information on the point that is hovered
-                     #over is given.
-                     fluidRow(
-                       wellPanel(htmlOutput("tooltip"))
-                     )
+    conditionalPanel(
+      "false",
+      selectInput(
+        "dummyInput",
+        label = "You should not be seeing this",
+        choices = c("matrix", "detail")
+      )
+    ),
+    column(
+      8,
+      conditionalPanel(
+        "input.dummyInput == 'matrix'",
+        plotOutput(
+          "plot_matrix",
+          click = "plot_matrix_click",
+          width = "95%",
+          height = "600px"
+        )
+      ),
+      conditionalPanel(
+        "input.dummyInput=='detail'",
+        #The button to go back to the plot matrix view
+          actionButton(
+            inputId = "back_button",
+            label = "Back",
+            class = "btn-primary btn-large btn-block",
+            width = "80%"
+          ),
+        fluidRow(
+          plotOutput("detail_plot",
+                     hover = "detail_plot_hover",
+                     height = "600px")
+        ),
+        #The text field in which information on the point that is hovered
+        #over is given.
+        fluidRow(wellPanel(htmlOutput("tooltip")))
+      )
+    ),
+    column(
+      4,
+      conditionalPanel(
+        r_logical_to_js_boolean_string(show_animate_buttons),
+        actionButton(
+          inputId = "run_button",
+          label = "Run",
+          class = "btn-success btn-large btn-block"
+        ),
+        actionButton(
+          inputId = "stop_button",
+          label = "Stop",
+          class = "btn-danger btn-large btn-block"
+        ),
+        actionButton(
+          inputId = "step_button",
+          label = "Step",
+          class = "btn-primary btn-large btn-block"
+        ),
+        conditionalPanel("shouldShowEvalResults",
+                         do.call(
+                           tabsetPanel, lapply(all_eval_measures(), function(measure) {
+                             tabPanel(measure, plotOutput(outputId = make.names(measure)))
+                           })
+                         ))
+      )
     )
-  )
+  ))
   return(ui)
 }
 #Creates a Shiny server to handle the logic of which plots are shown
 makeServer <- function(dsc,dsd,step=NULL,delay=5000) {
   
+  measures <- make.names(all_eval_measures())
   if(is.data.frame(dsd)) {
     points <- dsd
     initial_data_frame <- format_data_from_dsc(dsc,points=points)
@@ -123,7 +190,9 @@ makeServer <- function(dsc,dsd,step=NULL,delay=5000) {
     #Additionally we are keeping track of the data frame that is currently being
     #shown as well as whether we are currently running the stream clustering
     #continuously.
-    state <- reactiveValues(display_mode="matrix",current_data_frame=initial_data_frame,
+    state <- reactiveValues(display_mode="matrix",
+                            current_data_frame=initial_data_frame,
+                            evaluation_results=NULL,
                             running=F,
                             should_perform_step=F,
                             plot_was_recently_drawn=F)
@@ -154,12 +223,11 @@ makeServer <- function(dsc,dsd,step=NULL,delay=5000) {
     observe({
       if(state$should_perform_step) {
         isolate({
-          new_points <- get_points(dsd,step,class=T)
           withProgress({
-            update(dsc,DSD_Memory(new_points[,1:(ncol(new_points)-1)]),step)
+            evalres <- evaluate_subspace(dsc,dsd,step,alsoTrainOn = T)
           },message="Updating the Clustering")
-          res <- format_data_from_dsc(dsc,points=new_points)
-          state$current_data_frame  <-  res
+          state$current_data_frame <- format_data_from_dsc(dsc,points=evalres$points)
+          state$evaluation_results <- incorporate_new_evalres(state$evaluation_results,evalres)
         })
         state$should_perform_step <- F
       }
@@ -210,12 +278,18 @@ makeServer <- function(dsc,dsd,step=NULL,delay=5000) {
       }
     })
     output$tooltip <- renderPrint({
-      row <- row_from_two_values(dataframe=state$current_data_frame,
-                                 hover_list=input$detail_plot_hover,
-                                 area_around_cursor=0.05)
+      row <- nearPoints(state$current_data_frame,input$detail_plot_hover,maxpoints = 1)
       res <- dataframe_row_to_html(row)
       cat(res)
     })
+    lapply(measures,function(measure) {
+      output[[measure]] <- renderPlot ({
+        if(!is.null(state$evaluation_results)) {
+          return(ggplot(state$evaluation_results,aes_string("time",measure)) + geom_line())
+        }
+      })
+    })
+    
   }
   return(server)
 }

@@ -26,4 +26,3 @@ are also included: A specific clustering can be plotted using
 \link{plot_stream_interactive} and the clustering can also be animated with
 the function \link{animate_stream_interactive}.
 }
-

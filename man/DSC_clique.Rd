@@ -23,4 +23,3 @@ dsc <- DSC_ThreeStage(macro=DSC_clique(),micro=DSC_subspaceCluStream())
 dsd <- DSD_RandomRBFSubspaceGeneratorEvents()
 update(dsc,dsd,1000)
 }
-

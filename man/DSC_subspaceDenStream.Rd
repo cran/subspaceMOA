@@ -26,4 +26,3 @@ DSC_subspaceDenStream(horizon = 1000, epsilon = 0.04, minPoints = 4,
 A version of the \link[streamMOA]{DSC_DenStream} algorithm that is optimized for use with \link{DSC_ThreeStage}. 
 Do not attempt to use this as a standalone stream clustering algorithm.
 }
-
